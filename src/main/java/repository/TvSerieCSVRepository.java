@@ -55,7 +55,7 @@ public class TvSerieCSVRepository implements TvSerieRepository {
         }
     }
 
-    // Oppgave 2.2c
+    // Oppgave 2.2c & 2.6
     private void skrivTilCSVFil(ArrayList<TvSerie> arrayTvSerier, File filnavn) {
         Thread skriveThread = new Thread(new Runnable() {
             @Override

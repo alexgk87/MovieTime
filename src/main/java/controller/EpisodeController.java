@@ -3,7 +3,6 @@ package controller;
 import io.javalin.http.Context;
 import model.Episode;
 import model.Produksjon;
-import repository.TvSerieCSVRepository;
 import repository.TvSerieRepository;
 
 import java.time.LocalDate;
@@ -13,7 +12,7 @@ import java.util.Collections;
 import java.util.Comparator;
 
 public class EpisodeController {
-    private TvSerieRepository tvSerieRepository;
+    private final TvSerieRepository tvSerieRepository;
 
     public EpisodeController(TvSerieRepository tvSerieRepository) {
         this.tvSerieRepository = tvSerieRepository;
@@ -60,6 +59,7 @@ public class EpisodeController {
     }
 
     public void opprettEpisode(Context context) {
+        // Fikk ikke helt til koden til 2.5c her (sammenfalle lik kode).
         String tvSerieNavn = context.pathParam("tvserie-id");
 
         String tittel = context.formParam("tittel");
@@ -72,32 +72,30 @@ public class EpisodeController {
 
         context.redirect(String.format("/tvserie/%s/sesong/%s", tvSerieNavn, sesongNr));
 
-        tvSerieRepository.opprettEnEpisode(tvSerieNavn, tittel, beskrivelse,
+        tvSerieRepository.opprettEnEpisode(
+                tvSerieNavn, tittel, beskrivelse,
                 Integer.parseInt(episodeNr), Integer.parseInt(sesongNr),
-                Integer.parseInt(spilletid), LocalDate.parse(utgivelsesdato, DateTimeFormatter.ISO_LOCAL_DATE), bildeUrl);
+                Integer.parseInt(spilletid), LocalDate.parse(utgivelsesdato, DateTimeFormatter.ISO_LOCAL_DATE), bildeUrl
+        );
     }
 
     public void oppdaterEpisode(Context context) {
-        String urlTvSerieNavn = context.pathParam("tvserie-id");
-        String urlSesNr = context.pathParam("sesong-nr");
-        String urlEpNr = context.pathParam("episode-nr");
+        // Her har jeg brukt koden som 2.5c ønsker.
+        Object[] urlArray = parseURL(context);
 
-        String tittel = context.formParam("tittel");
-        String sesongNr = context.formParam("sesongNummer");
-        String episodeNr = context.formParam("episodeNummer");
-        String beskrivelse = context.formParam("beskrivelse");
-        String spilletid = context.formParam("spilletid");
-        String utgivelsesdato = context.formParam("utgivelsesdato");
-        String bildeUrl = context.formParam("bildeUrl");
+        context.redirect(String.format("/tvserie/%s/sesong/%s/episode/%s", urlArray[0], urlArray[4], urlArray[5]));
 
-        context.redirect(String.format("/tvserie/%s/sesong/%s/episode/%s", urlTvSerieNavn, sesongNr, episodeNr));
-
-        tvSerieRepository.oppdaterEnEpisode(urlTvSerieNavn, Integer.parseInt(urlSesNr), Integer.parseInt(urlEpNr)
-        , tittel, beskrivelse, Integer.parseInt(episodeNr), Integer.parseInt(sesongNr), Integer.parseInt(spilletid)
-        , LocalDate.parse(utgivelsesdato, DateTimeFormatter.ISO_LOCAL_DATE), bildeUrl);
+        tvSerieRepository.oppdaterEnEpisode(
+                (String) urlArray[0], (int) urlArray[1], (int) urlArray[2],
+                (String) urlArray[3], (String) urlArray[6], (int) urlArray[5],
+                (int) urlArray[4], (int) urlArray[7], (LocalDate) urlArray[8], (String) urlArray[9]
+        );
     }
 
-    /*public parseContext(Context context) {
+    // Her prøvde jeg meg på en sammeslåing av kode (ref 2.5c). Men fikk det ikke helt til.
+    // Tanken var og returnere en Array med objekter, der jeg typecastet det til int / String / LocalDate
+    // der jeg hadde behov. Det fungerte fint i oppdaterEpisode, men det skar seg litt med oppretting av episode.
+    public Object[] parseURL(Context context) {
         String urlTvSerieNavn = context.pathParam("tvserie-id");
         String urlSesNr = context.pathParam("sesong-nr");
         String urlEpNr = context.pathParam("episode-nr");
@@ -110,6 +108,17 @@ public class EpisodeController {
         String utgivelsesdato = context.formParam("utgivelsesdato");
         String bildeUrl = context.formParam("bildeUrl");
 
-        return urlSesNr;
-    }*/
+        return new Object[]{
+                urlTvSerieNavn,
+                Integer.parseInt(urlSesNr),
+                Integer.parseInt(urlEpNr),
+                tittel,
+                Integer.parseInt(sesongNr),
+                Integer.parseInt(episodeNr),
+                beskrivelse,
+                Integer.parseInt(spilletid),
+                LocalDate.parse(utgivelsesdato, DateTimeFormatter.ISO_LOCAL_DATE),
+                bildeUrl
+        };
+    }
 }
